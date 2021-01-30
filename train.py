@@ -23,7 +23,6 @@ std = None
 batch_size=0
 train_data_loader=None
 valid_data_loader=None
-writer=None
 lr=0
 weight_decay=0
 model_name=''
@@ -93,17 +92,11 @@ def load_data(data_path, batch_size):
     classes=full_dataLoader.dataset.classes
     print('classes are '+str(classes))
 
-def send_stats(i, module, input, output):
-    writer.add_scalar(f"{i}-mean", output.data.mean())
-    writer.add_scalar(f"{i}-stddev", output.data.std())
-
 def load_model(model_name, device, optim_type, loss, lr, weight_decay):
     global classes
     global optimizer
     global loss_fn
     global model
-    global writer
-    writer = SummaryWriter()
 
     if model_name == 'densenet121':
         model = models.densenet121(pretrained=False, num_classes=len(classes))
@@ -144,8 +137,6 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
 
     global train_loss_per_epoch
     global valid_loss_per_epoch
-    global writer
-    writer = SummaryWriter()
 
     for epoch in range(epochs):
         epoch += 1 # start at epoch 1 rather than 0
@@ -188,7 +179,7 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
             correct = torch.eq(torch.max(F.softmax(output, dim=1), dim=1)[1], labels).view(-1)
             num_correct += torch.sum(correct).item()
             num_examples += correct.shape[0]
-            writer.add_scalar('accuracy', num_correct / num_examples, epoch)
+#             writer.add_scalar('accuracy', num_correct / num_examples, epoch)
             #for i, m in enumerate(model.children()):
             #    m.register_forward_hook(partial(send_stats, i))
         valid_loss /= len(valid_data_loader)
