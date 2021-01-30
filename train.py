@@ -154,7 +154,6 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
             if device=="cuda":
                 labels = labels.to(device)
             loss = loss_fn(output, labels)
-            writer.add_scalar('loss', loss, epoch)
             loss.backward()
             optimizer.step()
             training_loss += loss.data.item()
