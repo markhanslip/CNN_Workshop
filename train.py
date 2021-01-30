@@ -189,7 +189,7 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
         print("epoch: {}, training loss: {:.3f}, validation loss: {:.3f}, accuracy = {:.2f}".format(epoch, training_loss, valid_loss, num_correct / num_examples))
     print('Finished Training')
 
-def save_model(model_path, input_type, model_name):
+def save_model(opt):
     global mean
     global std
 
@@ -219,7 +219,7 @@ def run_training(opt):
     load_data(opt.data_path, opt.batch_size)
     load_model(opt.model_name, opt.device, opt.optim_type, opt.loss, opt.lr, opt.weight_decay)
     train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, opt.epochs, opt.device)
-    save_model(opt.model_path, opt.input_type, opt.model_name)
+    save_model(opt.model_path, opt.model_name)
     plot_training()
 
 if __name__ == '__main__':
