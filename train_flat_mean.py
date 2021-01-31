@@ -37,6 +37,10 @@ def load_data(data_path, batch_size):
     global std
     global num_workers
 
+    num_workers = os.cpu_count() # assign available cpu threads to num_workers
+    print('num_workers = '+str(num_workers))
+
+
     input_res = 224
     batch_size = opt.batch_size # 16 seems to work well
 
@@ -186,7 +190,6 @@ def plot_training():
     plt.show()
 
 def run_training(opt):
-    mean_std(opt.data_path)
     load_data(opt.data_path, opt.batch_size)
     load_model(opt.model_name, opt.device, opt.optim_type, opt.loss, opt.lr, opt.weight_decay)
     train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, opt.epochs, opt.device)

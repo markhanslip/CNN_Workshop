@@ -14,12 +14,15 @@ from IPython.display import Image, display, HTML
 import os
 #from torch.utils.tensorboard import SummaryWriter
 from functools import partial
+from PIL import Image as image
+# from PIL.Image.convert import convert
+
 
 optimizer=None
 loss_fn=None
 model=None
-mean = None
-std = None
+# mean = None
+# std = None
 batch_size=0
 train_data_loader=None
 valid_data_loader=None
@@ -33,17 +36,26 @@ def load_data(data_path, batch_size):
     global classes
     global train_data_loader
     global valid_data_loader
-    global mean
-    global std
+    # global mean
+    # global std
     global num_workers
+
+    num_workers = os.cpu_count() # assign available cpu threads to num_workers
+    print('num_workers = '+str(num_workers))
 
     input_res = 224
     batch_size = opt.batch_size # 16 seems to work well
 
+    # for root, dirs, files in os.walk(opt.data_path):
+    #     for file in files:
+    #         im = image.open(os.path.join(root,file))
+    #         im = im.convert('RGB')
+            # ims.append(im)
+
     transform = transforms.Compose([
         transforms.Resize(input_res),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
     full_dataset = torchvision.datasets.ImageFolder(root=data_path, transform=transform)
@@ -159,8 +171,8 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
     print('Finished Training')
 
 def save_model(model_path, model_name):
-    global mean
-    global std
+    # global mean
+    # global std
     global model
 
     torch.save({
@@ -168,8 +180,8 @@ def save_model(model_path, model_name):
     'classes':classes,
     'resolution':224,
     'modelType':model_name,
-    'mean':mean,
-    'std':std
+    'mean':[0.485, 0.456, 0.406],
+    'std':[0.229, 0.224, 0.225]
 }, model_path)
 
     print('saved model file to '+model_path)
@@ -185,7 +197,6 @@ def plot_training():
     plt.show()
 
 def run_training(opt):
-    mean_std(opt.data_path)
     load_data(opt.data_path, opt.batch_size)
     load_model(opt.model_name, opt.device, opt.optim_type, opt.loss, opt.lr, opt.weight_decay)
     train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, opt.epochs, opt.device)
