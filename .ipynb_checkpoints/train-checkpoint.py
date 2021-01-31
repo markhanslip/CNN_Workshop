@@ -23,7 +23,6 @@ std = None
 batch_size=0
 train_data_loader=None
 valid_data_loader=None
-writer=None
 lr=0
 weight_decay=0
 model_name=''
@@ -93,17 +92,11 @@ def load_data(data_path, batch_size):
     classes=full_dataLoader.dataset.classes
     print('classes are '+str(classes))
 
-def send_stats(i, module, input, output):
-    writer.add_scalar(f"{i}-mean", output.data.mean())
-    writer.add_scalar(f"{i}-stddev", output.data.std())
-
 def load_model(model_name, device, optim_type, loss, lr, weight_decay):
     global classes
     global optimizer
     global loss_fn
     global model
-    global writer
-    writer = SummaryWriter()
 
     if model_name == 'densenet121':
         model = models.densenet121(pretrained=False, num_classes=len(classes))
@@ -144,8 +137,6 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
 
     global train_loss_per_epoch
     global valid_loss_per_epoch
-    global writer
-    writer = SummaryWriter()
 
     for epoch in range(epochs):
         epoch += 1 # start at epoch 1 rather than 0
@@ -163,7 +154,6 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
             if device=="cuda":
                 labels = labels.to(device)
             loss = loss_fn(output, labels)
-            writer.add_scalar('loss', loss, epoch)
             loss.backward()
             optimizer.step()
             training_loss += loss.data.item()
@@ -188,7 +178,7 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
             correct = torch.eq(torch.max(F.softmax(output, dim=1), dim=1)[1], labels).view(-1)
             num_correct += torch.sum(correct).item()
             num_examples += correct.shape[0]
-            writer.add_scalar('accuracy', num_correct / num_examples, epoch)
+#             writer.add_scalar('accuracy', num_correct / num_examples, epoch)
             #for i, m in enumerate(model.children()):
             #    m.register_forward_hook(partial(send_stats, i))
         valid_loss /= len(valid_data_loader)
@@ -199,14 +189,15 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
         print("epoch: {}, training loss: {:.3f}, validation loss: {:.3f}, accuracy = {:.2f}".format(epoch, training_loss, valid_loss, num_correct / num_examples))
     print('Finished Training')
 
-def save_model(model_path, input_type, model_name):
+def save_model(model_path, model_name):
     global mean
     global std
+    global model
 
     torch.save({
     'model':model.state_dict(),
     'classes':classes,
-    'resolution':input_resolution,
+    'resolution':224,
     'modelType':model_name,
     'mean':mean,
     'std':std
@@ -229,7 +220,7 @@ def run_training(opt):
     load_data(opt.data_path, opt.batch_size)
     load_model(opt.model_name, opt.device, opt.optim_type, opt.loss, opt.lr, opt.weight_decay)
     train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, opt.epochs, opt.device)
-    save_model(opt.model_path, opt.input_type, opt.model_name)
+    save_model(opt.model_path, opt.model_name)
     plot_training()
 
 if __name__ == '__main__':

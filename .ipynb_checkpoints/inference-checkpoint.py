@@ -10,21 +10,18 @@ from torchvision import datasets, transforms, models
 from threading import Thread
 import pickle
 import argparse
-from IPython.display import Image, clear_output, display
+import PIL 
 
 model=None
 classes=None
 input_resolution=None
-pa = None
-frames_per_second=2
-chunk_size = np.int(sample_rate/frames_per_second)  # divide sample_rate by n updates per second if needed, still need to add to final call 
 predict=None
 prob=None
 stream = None
 mean = None
 std = None
 
-def load_model(opt):
+def load_model(model_path):
     global model
     global SpectrumVariables
     global classes
@@ -37,27 +34,29 @@ def load_model(opt):
     classes = model_data['classes']
     mean = model_data['mean']
     std = model_data['std']
-    
     found_model = False
 
-    if model_data['modelType'] = models.densenet121():
+    if model_data['modelType'] == 'densenet121':
+        model = models.densenet121()
         model.classifier = nn.Linear(1024, len(classes)) 
         found_model = True
-        print('model is '+model_data['modelType'])
+#         print('model is '+model_data['modelType'])
         if not found_model:
             print('could not find requested model:', model_data['modelType'])
 
-    if model_data['modelType'] = models.resnet18():
+    if model_data['modelType'] == 'resnet18':
+        model = models.resnet18()
         model.fc = nn.Linear(512, len(classes)) 
         found_model = True
-        print('model is '+model_data['modelType'])
+#         print('model is '+model_data['modelType'])
         if not found_model:
             print('could not find requested model:', model_data['modelType'])
 
-    if model_data['modelType'] = models.resnet34():
+    if model_data['modelType'] == 'resnet34':
+        model = models.resnet34()
         model.fc = nn.Linear(512, len(classes)) 
         found_model = True
-        print('model is '+model_data['modelType'])
+#         print('model is '+model_data['modelType'])
         if not found_model:
             print('could not find requested model:', model_data['modelType'])
 
@@ -65,20 +64,21 @@ def load_model(opt):
     model.eval() # moved to here 25/2/2020 
     if torch.cuda.is_available():
         device = torch.device("cuda")
-        print("device is cuda")
+#         print("device is cuda")
     else:
         device = torch.device("cpu")
-        print("device is cpu")
+#         print("device is cpu")
     model.to(device)
-    print('classes are: '+str(classes))
+#     print('classes are: '+str(classes))
 
 
-def infer_class(opt):
+def infer_class(test_image):
     global predict
     global prob
     global classes
     global mean
     global std
+    global model 
 
 #     input_resolution=SpectrumVariables["RESOLUTION"]
     
@@ -95,10 +95,17 @@ def infer_class(opt):
 #     output_image = cv2.resize(color_image[:,-input_resolution:,:], (input_resolution, input_resolution))
 #     cv2.imshow("rolling spectrogram", output_image) 
 #     cv2.waitKey(100)
+
+#     image = Image.open(Path(test_image))
+
+
+# try this next:
+
+    image = PIL.Image.open(test_image)
     image_tensor = transforms.Compose([
-        transforms.ToPILImage(), #?
+#         transforms.ToPILImage(), #?
         transforms.ToTensor(),
-        transforms.Normalize(mean=mean, std=std)])(opt.test_image)   
+        transforms.Normalize(mean=mean, std=std)])(image)   
     image_tensor = Variable(image_tensor, requires_grad=False)
     test_image = image_tensor.unsqueeze(0)
 
@@ -110,18 +117,18 @@ def infer_class(opt):
     prob = str(list(prob[0].detach().cpu().numpy())) 
     predict = str(predict[0].cpu().numpy())
     new_classes = str(list(classes))
-    if predict = '[1 0]':
-        print(classes[0],'!')
+    if predict == '[1 0]':
+        print('computer says',classes[0],'!')
 #         Image(opt.input_image)
-    if predict = '[0 1]':
-        print(classes[1],'!')
+    if predict == '[0 1]':
+        print('computer says',classes[1],'!')
 #         Image(opt.input_image)
     return
 
 def run_inference(opt): #runtime is seconds
-    print("loading model data")
+    print("having a think..... ")
     load_model(opt.model_path)
-    infer_class()
+    infer_class(opt.test_image)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

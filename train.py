@@ -189,14 +189,15 @@ def train(model, optimizer, loss_fn, train_data_loader, valid_data_loader, epoch
         print("epoch: {}, training loss: {:.3f}, validation loss: {:.3f}, accuracy = {:.2f}".format(epoch, training_loss, valid_loss, num_correct / num_examples))
     print('Finished Training')
 
-def save_model(opt):
+def save_model(model_path, model_name):
     global mean
     global std
+    global model
 
     torch.save({
     'model':model.state_dict(),
     'classes':classes,
-    'resolution':input_resolution,
+    'resolution':224,
     'modelType':model_name,
     'mean':mean,
     'std':std
