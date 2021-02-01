@@ -36,6 +36,7 @@ def mean_std(data_path):
     global num_workers
     num_workers = os.cpu_count() # assign available cpu threads to num_workers
     print('num_workers = '+str(num_workers))
+    print('calculating mean and standard deviation of dataset (this can take a while)')
 
     # calculate the mean and std:
     temp_transform = transforms.ToTensor()
@@ -71,7 +72,7 @@ def load_data(data_path, batch_size):
     batch_size = opt.batch_size # 16 seems to work well
 
     transform = transforms.Compose([
-        transforms.Resize(input_res),
+        transforms.RandomResizedCrop(input_res),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean,
                          std=std)
@@ -202,7 +203,7 @@ def save_model(model_path, model_name):
     'mean':mean,
     'std':std
 }, model_path)
-    
+
     print('saved model file to '+model_path)
 
 def plot_training():
